@@ -2,7 +2,7 @@
 <p align="center">XCUImage (Explicitus Image) is a simple library for loading/decoding images and additional utilities based on <a href="https://github.com/nothings/stb/blob/master/stb_image.h">stb_image</a>.</p>
 
 <h3>Installation</h3>
-Base steps:
+Basic steps:
 
 ```
 git clone https://github.com/xzripper/xcuimg.d
