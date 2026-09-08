@@ -2,7 +2,7 @@
 
 #include "stb_image.h"
 
-unsigned char* xcu_load_image(const char *filename, int* x, int* y, int* channels, int rchannels) { return stbi_load(filename, x, y, channels, rchannels); }
+unsigned char* xcu_load_image(const char *filename, int* x, int* y, int* channels, int desired_channels) { return stbi_load(filename, x, y, channels, desired_channels); }
 unsigned char* xcu_load_image_from_memory(const stbi_uc *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels) { return stbi_load_from_memory(buffer, len, x, y, channels_in_file, desired_channels); }
 unsigned char* xcu_load_image_from_file(FILE *file, int *x, int *y, int *channels_in_file, int desired_channels) { return stbi_load_from_file(file, x, y, channels_in_file, desired_channels); }
 
