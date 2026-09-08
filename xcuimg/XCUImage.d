@@ -63,6 +63,8 @@ public:
 
     int GetImageChannels() @safe @nogc { return m_ImgChannels; }
 
+    int GetImageDesiredChannels() @safe @nogc { return m_ImgDesiredChannels; }
+
     ubyte* GetImageData() @safe @nogc { return m_ImgData; }
 
     bool IsReleased() @safe @nogc { return m_Released; }
