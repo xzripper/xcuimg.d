@@ -8,7 +8,7 @@ module xcuimg.XCUImageDWrapper;
 import core.stdc.stdio : FILE;
 
 extern(C) {
-    ubyte* xcu_load_image(const char* filename, int* width, int* height, int* channels, int rchannels);
+    ubyte* xcu_load_image(const char* filename, int* width, int* height, int* channels, int desired_channels);
     ubyte* xcu_load_image_from_memory(const ubyte* buffer, int len, int* x, int* y, int* channels_in_file, int desired_channels);
     ubyte* xcu_load_image_from_file(FILE* file, int* x, int* y, int* channels_in_file, int desired_channels);
 
