@@ -1,17 +1,19 @@
 /*  xcuimg.d by Evan / https://github.com/xzripper
 
     Simple library for loading/decoding images and other things based on stb_image.h
-    Use XCUImageDWrapper.d for low-level implementation. */
+    Use XCUImageDWrapper.d for a low-level implementation. */
 
 module xcuimg.XCUImage;
 
-import core.stdc.stdio : FILE, ftell, rewind;
+import core.stdc.stdio : FILE, ftell, fseek, rewind, SEEK_END, SEEK_SET;
 
 import std.string : toStringz, fromStringz;
 
 import std.stdio : File;
 
 import xcuimg.XCUImageDWrapper;
+
+enum XCUIMG_VERSION = "1.1";
 
 enum XCU_OK = "XCU_OK", XCU_INTERNAL = "XCU_INTERNAL", XCU_EMPTY = -1;
 
@@ -25,6 +27,18 @@ void REWIND_FPTR( FILE* p_File )
     rewind( p_File );
 }
 
+bool FSTREAM_AT_END( FILE* p_File ) {
+    long t_CurrPos = ftell( p_File );
+
+    fseek( p_File, 0, SEEK_END );
+
+    long t_LastPos = ftell( p_File );
+
+    fseek( p_File, t_CurrPos, SEEK_SET );
+
+    return t_CurrPos == t_LastPos;
+}
+
 struct XCUImage
 {
 private:
@@ -32,7 +46,8 @@ private:
 
     int m_ImgWidth = XCU_EMPTY,
         m_ImgHeight = XCU_EMPTY,
-        m_ImgChannels = XCU_EMPTY;
+        m_ImgChannels = XCU_EMPTY,
+        m_ImgDesiredChannels = XCU_EMPTY;
 
     ubyte* m_ImgData = null;
 
@@ -52,7 +67,7 @@ public:
 
     bool IsReleased() @safe @nogc { return m_Released; }
 
-    int[][] GetImagePixelArray( bool p_HandleTransparency=true )
+    int[][] GetImagePixelArray()
     {
         int[][] t_RGBA;
 
@@ -60,7 +75,7 @@ public:
         {
             foreach ( int t_ImgX; 0..m_ImgWidth )
             {
-                int t_RGBIdx = XCURGBIDX( m_ImgWidth, t_ImgX, t_ImgY, m_ImgChannels );
+                int t_RGBIdx = XCURGBIDX( m_ImgWidth, t_ImgX, t_ImgY, m_ImgDesiredChannels );
 
                 int[] t_RGBA1 = [
                     m_ImgData[t_RGBIdx],
@@ -68,7 +83,7 @@ public:
                     m_ImgData[t_RGBIdx + 2]
                 ];
 
-                if ( p_HandleTransparency && m_ImgChannels == 4 )
+                if ( m_ImgDesiredChannels == 4 )
                 {
                     t_RGBA1 ~= m_ImgData[t_RGBIdx + 3];
                 }
@@ -82,7 +97,7 @@ public:
 
     void Free()
     {
-        assert( m_ImgData !is null && !m_Released, "already freed" );
+        assert( m_ImgData !is null && !m_Released, "Image is already freed" );
 
         xcu_image_free( m_ImgData );
 
@@ -122,15 +137,17 @@ private string _TranslateError( char* p_STBIERR ) @nogc
     return cast(string) fromStringz( p_STBIERR );
 }
 
-XCUImage XCULoadImage( string p_FileName, int p_RChannels )
+XCUImage XCULoadImage( string p_FileName, int p_DesiredChannels )
 {
     XCUImage t_LImage;
 
     t_LImage.m_ImgPath = p_FileName;
 
+    t_LImage.m_ImgDesiredChannels = p_DesiredChannels;
+
     t_LImage.m_ImgData = xcu_load_image( cast(const char*) p_FileName, 
                         &t_LImage.m_ImgWidth, &t_LImage.m_ImgHeight,
-                        &t_LImage.m_ImgChannels, p_RChannels );
+                        &t_LImage.m_ImgChannels, p_DesiredChannels );
 
     if ( t_LImage.m_ImgData is null )
     {
@@ -140,16 +157,18 @@ XCUImage XCULoadImage( string p_FileName, int p_RChannels )
     return t_LImage;
 }
 
-XCUImage XCULoadImageFromMemory( void[] p_ImageByteBuffer, int p_RChannels )
+XCUImage XCULoadImageFromMemory( void[] p_ImageByteBuffer, int p_DesiredChannels )
 {
     XCUImage t_LImage;
 
     t_LImage.m_ImgPath = XCU_INTERNAL;
+
+    t_LImage.m_ImgDesiredChannels = p_DesiredChannels;
 
     t_LImage.m_ImgData = xcu_load_image_from_memory(
                     _UBytePointer( p_ImageByteBuffer ), cast(int) p_ImageByteBuffer.length,
                     &t_LImage.m_ImgWidth, &t_LImage.m_ImgHeight,
-                    &t_LImage.m_ImgChannels, p_RChannels );
+                    &t_LImage.m_ImgChannels, p_DesiredChannels );
 
     if ( t_LImage.m_ImgData is null )
     {
@@ -159,20 +178,22 @@ XCUImage XCULoadImageFromMemory( void[] p_ImageByteBuffer, int p_RChannels )
     return t_LImage;
 }
 
-XCUImage XCULoadImageFromFile( FILE* p_File, int p_RChannels )
+XCUImage XCULoadImageFromFile( FILE* p_File, int p_DesiredChannels )
 {
     XCUImage t_LImage;
 
     t_LImage.m_ImgPath = XCU_INTERNAL;
 
-    if ( ftell( p_File ) != 0 )
+    t_LImage.m_ImgDesiredChannels = p_DesiredChannels;
+
+    if ( FSTREAM_AT_END( p_File ) )
     {
         REWIND_FPTR( p_File );
     }
 
     t_LImage.m_ImgData = xcu_load_image_from_file( p_File,
                         &t_LImage.m_ImgWidth, &t_LImage.m_ImgHeight,
-                        &t_LImage.m_ImgChannels, p_RChannels );
+                        &t_LImage.m_ImgChannels, p_DesiredChannels );
 
     if ( t_LImage.m_ImgData is null )
     {
@@ -215,7 +236,7 @@ XCUImageInfo XCURetrieveImageInfoFromFile( FILE* p_File )
 
     t_ImgInfo.m_ImgPath = XCU_INTERNAL;
 
-    if ( ftell( p_File ) != 0 )
+    if ( FSTREAM_AT_END( p_File ) )
     {
         REWIND_FPTR( p_File );
     }
@@ -241,7 +262,7 @@ bool XCUMemoryImageIsHDR( void[] p_ImageByteBuffer )
 
 bool XCUFileImageIsHDR( FILE* p_File )
 {
-    if ( ftell( p_File ) != 0 )
+    if ( FSTREAM_AT_END( p_File ) )
     {
         REWIND_FPTR( p_File );
     }
