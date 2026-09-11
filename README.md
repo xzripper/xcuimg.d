@@ -12,6 +12,8 @@ void main() {
 ```
 <sub>Reading JPG image's pixel array.</sub>
 
+Check out the specification for desired channels <a href="https://github.com/nothings/stb/blob/2c980bb59875b0d32144a71867fbdebb2f77cd20/stb_image.h#L167">here</a>.
+
 <h3>Installation</h3>
 Basic steps:
 
