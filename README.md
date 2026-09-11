@@ -1,5 +1,16 @@
-<h1 align="center">xcuimg.d v1.1</h1>
-<p align="center">XCUImage (Explicitus Image) is a simple library for loading/decoding images, also contains additional utilities based on <a href="https://github.com/nothings/stb/blob/master/stb_image.h">stb_image</a>.</p>
+<h1 align="center">xcuimg.d v1.2</h1>
+<p align="center">XCUImage (Explicitus Image) is a simple library for loading/decoding images, with additional utilities based on <a href="https://github.com/nothings/stb/blob/master/stb_image.h">stb_image</a>.</p>
+
+```d
+import xcuimg.XCUImage : XCUImage, XCULoadImage;
+
+void main() {
+    XCUImage image = XCULoadImage("MyImage.jpg", 3);
+
+    int[][] pixels = image.GetImagePixelArray();
+}
+```
+<sub>Reading JPG image's pixel array.</sub>
 
 <h3>Installation</h3>
 Basic steps:
@@ -14,6 +25,7 @@ Pre-built object file:
 ```
 wget -q https://github.com/xzripper/xcuimg.d/releases/download/v1.1/xcuimg.o -O xcuimg/cbg/xcuimg.o
 ```
+<sub>Object file is the same since V1.1</sub>
 
 Building manually:
 
