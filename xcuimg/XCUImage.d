@@ -13,7 +13,9 @@ import std.stdio : File;
 
 import xcuimg.XCUImageDWrapper;
 
-enum XCUIMG_VERSION = "1.1";
+enum XCUIMG_VERSION = "1.2";
+
+enum IMAGE_MIN_CHANNELS = 1, IMAGE_MAX_CHANNELS = 4;
 
 enum XCU_OK = "XCU_OK", XCU_INTERNAL = "XCU_INTERNAL", XCU_EMPTY = -1;
 
@@ -79,15 +81,11 @@ public:
             {
                 int t_RGBIdx = XCURGBIDX( m_ImgWidth, t_ImgX, t_ImgY, m_ImgDesiredChannels );
 
-                int[] t_RGBA1 = [
-                    m_ImgData[t_RGBIdx],
-                    m_ImgData[t_RGBIdx + 1],
-                    m_ImgData[t_RGBIdx + 2]
-                ];
+                int[] t_RGBA1 = new int[m_ImgDesiredChannels];
 
-                if ( m_ImgDesiredChannels == 4 )
+                for ( int t_IterChannel = 0; t_IterChannel <= m_ImgDesiredChannels - 1; ++t_IterChannel )
                 {
-                    t_RGBA1 ~= m_ImgData[t_RGBIdx + 3];
+                    t_RGBA1[t_IterChannel] = m_ImgData[t_RGBIdx + t_IterChannel];
                 }
 
                 t_RGBA ~= t_RGBA1;
@@ -141,6 +139,10 @@ private string _TranslateError( char* p_STBIERR ) @nogc
 
 XCUImage XCULoadImage( string p_FileName, int p_DesiredChannels )
 {
+    assert( 
+        p_DesiredChannels >= IMAGE_MIN_CHANNELS && p_DesiredChannels <= IMAGE_MAX_CHANNELS, 
+        "Invalid desired channels value");
+
     XCUImage t_LImage;
 
     t_LImage.m_ImgPath = p_FileName;
@@ -161,6 +163,10 @@ XCUImage XCULoadImage( string p_FileName, int p_DesiredChannels )
 
 XCUImage XCULoadImageFromMemory( void[] p_ImageByteBuffer, int p_DesiredChannels )
 {
+    assert( 
+        p_DesiredChannels >= IMAGE_MIN_CHANNELS && p_DesiredChannels <= IMAGE_MAX_CHANNELS, 
+        "Invalid desired channels value");
+
     XCUImage t_LImage;
 
     t_LImage.m_ImgPath = XCU_INTERNAL;
@@ -182,6 +188,10 @@ XCUImage XCULoadImageFromMemory( void[] p_ImageByteBuffer, int p_DesiredChannels
 
 XCUImage XCULoadImageFromFile( FILE* p_File, int p_DesiredChannels )
 {
+    assert( 
+        p_DesiredChannels >= IMAGE_MIN_CHANNELS && p_DesiredChannels <= IMAGE_MAX_CHANNELS, 
+        "Invalid desired channels value");
+
     XCUImage t_LImage;
 
     t_LImage.m_ImgPath = XCU_INTERNAL;
